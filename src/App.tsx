@@ -1,16 +1,74 @@
 "use client";
 
-import { Authenticated, Unauthenticated } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import {
+  Authenticated,
+  Unauthenticated,
+  useMutation,
+  useQuery,
+} from "convex/react";
 import { FC, useEffect, useRef, useState } from "react";
+import { api } from "../convex/_generated/api";
+import type { Rsvp } from "../convex/rsvp";
 
 export default function App() {
+  const { signIn, signOut } = useAuthActions();
+  const [signInStep, setSignInStep] = useState<"init" | "otp">("init");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [rsvp, setRsvp] = useState<Rsvp>({
+    name: "",
+    rsvp: "going",
+  });
+  const user = useQuery(api.users.getCurrentUser);
+  const learnings = useQuery(api.fun.getLearnings);
+  const nostalgia = useQuery(api.fun.getNostalgia);
+  const upsertRsvp = useMutation(api.rsvp.upsertRsvp);
+  const serverRsvp = useQuery(api.rsvp.getRsvp);
+  const serverRsvpRef = useRef<Rsvp>(null);
+  const isServerRsvpSet = Boolean(serverRsvp);
+  const guests = useQuery(api.rsvp.getGuests);
+  const going = guests ? guests.filter((guest) => guest.rsvp === "going") : [];
+  const maybe = guests ? guests.filter((guest) => guest.rsvp === "maybe") : [];
+  const notGoing = guests
+    ? guests.filter((guest) => guest.rsvp === "not going")
+    : [];
+
+  useEffect(() => {
+    void (async () => {
+      if (rsvp.name.trim()) {
+        await upsertRsvp(rsvp);
+      }
+    })();
+  }, [rsvp, upsertRsvp]);
+
+  const isSelected = (kind: Rsvp["rsvp"]) => rsvp.rsvp === kind;
+
+  useEffect(() => {
+    if (serverRsvp) {
+      serverRsvpRef.current = serverRsvp;
+    }
+  }, [isServerRsvpSet, serverRsvp]);
+
+  useEffect(() => {
+    void (async () => {
+      if (isServerRsvpSet) {
+        if (serverRsvpRef.current) {
+          setRsvp(serverRsvpRef.current);
+        }
+      } else {
+        setSignInStep("init");
+      }
+    })();
+  }, [isServerRsvpSet]);
+
   return (
     <>
       <CursorSparkler />
       <main className="p-8 flex flex-col gap-16 max-w-5xl m-auto">
         <section className="max-w-prose mx-auto w-full mt-8">
           <span className="font-bold">nostalgic </span>
-          for the days of typing semicolons? then please join us in
+          for the days of typing your own semicolons? join us in
         </section>
         <section>
           <h1 className="font-[EB_Garamond] text-8xl tracking-tight text-right">
@@ -20,55 +78,215 @@ export default function App() {
           <img src="/happy.gif" className="h-28 w-28 ml-auto"></img>
         </section>
         <section className="mx-auto text-center">
-          <p>on september 20, 2026, at 1pm.</p>
-          <p>rsvp for address!</p>
+          <p className="font-bold">date tbd</p>
+          <Unauthenticated>
+            <p>rsvp for address!</p>
+          </Unauthenticated>
+          <Authenticated>
+            <p>beacon house! 1354 florida st, sf</p>
+          </Authenticated>
+          <p>
+            <span className="font-bold">1pm</span> coding
+          </p>
+          <p>
+            <span className="font-bold">3pm</span> show & tell
+          </p>
         </section>
         <section className="max-w-prose text-justify mx-auto w-full">
           <p>
             <span className="font-bold">programming</span> has always been a
             form of art. this is even more true, now that software engineering
             is increasingly automated. as with any craft, there’s much we can
-            learn by gaining deep familiarity with our tools:
+            learn through gaining deep familiarity with our tools:
           </p>
           <ul className="list-disc list-inside">
             <li>thinking within the structure of a programming language</li>
-            <li>slowing down and coding more deliberately</li>
-            <li>feeling the satisfaction of your project coming to life</li>
+            {learnings && learnings.map((learning) => <li>{learning}</li>)}
           </ul>
         </section>
+        <Authenticated>
+          <section className="max-w-prose mx-auto w-full">
+            {going.length > 0 && (
+              <>
+                <p className="font-bold">going!</p>
+                <ul>
+                  {going.map((guest) => (
+                    <li>
+                      {guest.name}
+                      {guest.pronouns ? ` (${guest.pronouns})` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {maybe.length > 0 && (
+              <>
+                <p className="font-bold">maybe going</p>
+                <ul>
+                  {maybe.map((guest) => (
+                    <li>
+                      {guest.name}
+                      {guest.pronouns ? ` (${guest.pronouns})` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {notGoing.length > 0 && (
+              <>
+                <p className="font-bold">not going :(</p>
+                <ul>
+                  {notGoing.map((guest) => (
+                    <li>
+                      {guest.name}
+                      {guest.pronouns ? ` (${guest.pronouns})` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+        </Authenticated>
         <section className="max-w-prose mx-auto w-full">
+          <p className="font-bold">rsvp</p>
           <Unauthenticated>
-            email (verify) already rsvped? sign-in to view the guest list
-          </Unauthenticated>
-          <Authenticated>
-            <p className="font-bold">guests</p>
-          </Authenticated>
-        </section>
-        <section className="max-w-prose mx-auto">
-          <Unauthenticated>
-            email (verify) already rsvped? sign-in to view the guest list
-          </Unauthenticated>
-          <Authenticated>
-            <p className="font-bold">rsvp</p>
             <p>
               <span className="font-bold">what's your email?</span> my email is{" "}
-              <input className="border-dotted dark:border-light border-dark border-b-2"></input>{" "}
-              <span className="opacity-80">(required)</span>.
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                disabled={signInStep !== "init"}
+              ></input>
+              {signInStep === "init" && (
+                <>
+                  {" "}
+                  <button
+                    onClick={() => {
+                      void signIn("resend-otp", { email }).then(() =>
+                        setSignInStep("otp"),
+                      );
+                    }}
+                    className="hover:cursor-pointer"
+                  >
+                    <span className="hover:opacity-100 transition opacity-60">
+                      [verify]
+                    </span>
+                  </button>
+                </>
+              )}
+              .
             </p>
+            {signInStep === "otp" && (
+              <p>
+                <span className="font-bold">what's your otp code?</span> my otp
+                is{" "}
+                <input
+                  className="border-dotted dark:border-light border-dark border-b-2"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                ></input>
+                <button
+                  onClick={() => {
+                    void signIn("resend-otp", { email, code });
+                  }}
+                  className="hover:cursor-pointer"
+                >
+                  <span className="hover:opacity-100 transition opacity-60">
+                    [verify]
+                  </span>
+                </button>
+                .
+              </p>
+            )}
+            <p className="opacity-60">
+              already rsvped? sign-in to view the guest list and edit your
+              response.
+            </p>
+          </Unauthenticated>
+          <Authenticated>
+            <p>
+              <span className="font-bold">what's your email?</span> my email is{" "}
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                disabled
+                value={user?.email}
+              ></input>{" "}
+              <button
+                onClick={() => {
+                  void signOut();
+                }}
+                className="hover:cursor-pointer"
+              >
+                <span className="hover:opacity-100 transition opacity-60">
+                  [sign-out]
+                </span>
+                .
+              </button>
+            </p>
+            <p>
+              <span className="font-bold">are you in?</span> i am{" "}
+              <button
+                onClick={() => setRsvp({ ...rsvp, rsvp: "going" })}
+                className={`${!isSelected("going") ? "hover:cursor-pointer" : ""}`}
+              >
+                <span
+                  className={`hover:opacity-100 transition ${!isSelected("going") ? "opacity-60" : ""}`}
+                >
+                  [going]
+                </span>
+              </button>
+              /
+              <button
+                onClick={() => setRsvp({ ...rsvp, rsvp: "maybe" })}
+                className={`${!isSelected("maybe") ? "hover:cursor-pointer" : ""}`}
+              >
+                <span
+                  className={`hover:opacity-100 transition ${!isSelected("maybe") ? "opacity-60" : ""}`}
+                >
+                  [maybe going]
+                </span>
+              </button>
+              /
+              <button
+                onClick={() => setRsvp({ ...rsvp, rsvp: "not going" })}
+                className={`${!isSelected("not going") ? "hover:cursor-pointer" : ""}`}
+              >
+                <span
+                  className={`hover:opacity-100 transition ${!isSelected("not going") ? "opacity-60" : ""}`}
+                >
+                  [not going]
+                </span>
+              </button>
+              .
+            </p>
+
             <div>
               <label>
                 <span className="font-bold">what name do you go by? </span>
                 my name is
               </label>{" "}
-              <input className="border-dotted dark:border-light border-dark border-b-2"></input>{" "}
-              <span className="opacity-80">(required)</span>.
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                value={rsvp.name}
+                onChange={(event) =>
+                  setRsvp({ ...rsvp, name: event.target.value })
+                }
+              ></input>{" "}
+              <span className="opacity-60">(required)</span>.
             </div>
             <div>
               <label>
                 <span className="font-bold">what are your pronouns?</span> my
                 pronouns are{" "}
               </label>
-              <input className="border-dotted dark:border-light border-dark border-b-2"></input>{" "}
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                value={rsvp.pronouns}
+                onChange={(event) =>
+                  setRsvp({ ...rsvp, pronouns: event.target.value })
+                }
+              ></input>{" "}
               .
             </div>
             <div>
@@ -78,7 +296,13 @@ export default function App() {
                 </span>{" "}
                 i miss{" "}
               </label>
-              <input className="border-dotted dark:border-light border-dark border-b-2"></input>{" "}
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                value={rsvp.memory}
+                onChange={(event) =>
+                  setRsvp({ ...rsvp, memory: event.target.value })
+                }
+              ></input>{" "}
               .
             </div>
             <div>
@@ -88,7 +312,13 @@ export default function App() {
                 </span>{" "}
                 i'm excited to learn about{" "}
               </label>
-              <input className="border-dotted dark:border-light border-dark border-b-2"></input>{" "}
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                value={rsvp.learning}
+                onChange={(event) =>
+                  setRsvp({ ...rsvp, learning: event.target.value })
+                }
+              ></input>{" "}
               .
             </div>
             <div>
@@ -98,7 +328,13 @@ export default function App() {
                 </span>{" "}
                 my dietary preferences are{" "}
               </label>
-              <input className="border-dotted dark:border-light border-dark border-b-2"></input>{" "}
+              <input
+                className="border-dotted dark:border-light border-dark border-b-2"
+                value={rsvp.dietaryPrefs}
+                onChange={(event) =>
+                  setRsvp({ ...rsvp, dietaryPrefs: event.target.value })
+                }
+              ></input>{" "}
               .
             </div>
           </Authenticated>
@@ -195,13 +431,13 @@ const Sparkle: FC<{ initialPos: Pos; angleRad: number; char: string }> = ({
   useEffect(() => {
     const id = setInterval(() => {
       const { left, top } = pos;
-      const dTop = -3 * Math.sin(angleRad);
-      const dLeft = 3 * Math.cos(angleRad);
+      const dTop = -1 * Math.sin(angleRad);
+      const dLeft = 1 * Math.cos(angleRad);
       setPos({
         left: left + dLeft,
         top: top + dTop,
       });
-    }, 100);
+    }, 30);
 
     return () => {
       clearInterval(id);
