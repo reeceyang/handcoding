@@ -32,13 +32,18 @@ export default function App() {
   const notGoing = guests
     ? guests.filter((guest) => guest.rsvp === "not going")
     : [];
+  const upsertTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
-    void (async () => {
-      if (rsvp.name.trim()) {
-        await upsertRsvp(rsvp);
+    if (rsvp.name.trim()) {
+      // debounce mutation calls
+      if (upsertTimeoutRef.current) {
+        clearTimeout(upsertTimeoutRef.current);
       }
-    })();
+      upsertTimeoutRef.current = setTimeout(async () => {
+        await upsertRsvp(rsvp);
+      }, 500);
+    }
   }, [rsvp, upsertRsvp]);
 
   const isSelected = (kind: Rsvp["rsvp"]) => rsvp.rsvp === kind;
