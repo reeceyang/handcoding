@@ -22,7 +22,6 @@ export default function App() {
   });
   const user = useQuery(api.users.getCurrentUser);
   const learnings = useQuery(api.fun.getLearnings);
-  const nostalgia = useQuery(api.fun.getNostalgia);
   const upsertRsvp = useMutation(api.rsvp.upsertRsvp);
   const serverRsvp = useQuery(api.rsvp.getRsvp);
   const serverRsvpRef = useRef<Rsvp>(null);
@@ -68,7 +67,7 @@ export default function App() {
       <main className="p-8 flex flex-col gap-16 max-w-5xl m-auto">
         <section className="max-w-prose mx-auto w-full mt-8">
           <span className="font-bold">nostalgic </span>
-          for the days of typing your own semicolons? join us in
+          for the days of <Nostalgia />? come join us in
         </section>
         <section>
           <h1 className="font-[EB_Garamond] text-8xl tracking-tight text-right">
@@ -286,7 +285,7 @@ export default function App() {
                 onChange={(event) =>
                   setRsvp({ ...rsvp, pronouns: event.target.value })
                 }
-              ></input>{" "}
+              ></input>
               .
             </div>
             <div>
@@ -302,7 +301,7 @@ export default function App() {
                 onChange={(event) =>
                   setRsvp({ ...rsvp, memory: event.target.value })
                 }
-              ></input>{" "}
+              ></input>
               .
             </div>
             <div>
@@ -318,7 +317,7 @@ export default function App() {
                 onChange={(event) =>
                   setRsvp({ ...rsvp, learning: event.target.value })
                 }
-              ></input>{" "}
+              ></input>
               .
             </div>
             <div>
@@ -334,7 +333,7 @@ export default function App() {
                 onChange={(event) =>
                   setRsvp({ ...rsvp, dietaryPrefs: event.target.value })
                 }
-              ></input>{" "}
+              ></input>
               .
             </div>
           </Authenticated>
@@ -351,8 +350,17 @@ export default function App() {
             event.
           </p>
         </section>
-        <footer className="ml-auto">
-          *not an anti-ai event! woo hoo go ai! i love ai!!!1!!1
+        <section className="ml-auto opacity-60">
+            <p>
+              *not an anti-ai event! woo hoo go ai! i love ai!!!1!!1
+            </p>
+          </section>
+        <footer className="mx-auto">
+          <section>
+            <p>
+              <a href="https://github.com/reeceyang/handcoding">made with ♡</a> by renee & powered by <a href="https://www.convex.dev/">convex</a>
+            </p>
+          </section>
         </footer>
       </main>
     </>
@@ -457,3 +465,42 @@ const Sparkle: FC<{ initialPos: Pos; angleRad: number; char: string }> = ({
     </div>
   );
 };
+
+function Nostalgia() {
+  const nostalgia = useQuery(api.fun.getNostalgia);
+  const [currentIndex, setCurrentIndex]= useState(0);
+  const [tick, setTick] = useState(0);
+  const [dTick, setDTick] = useState(1);
+
+  useEffect(() => {
+    if (!nostalgia) {
+      return;
+    }
+    const currentMemory = nostalgia[currentIndex]?.trim();
+    if (!currentMemory) {
+      return;
+    }
+    const intervalId = setInterval(() => {
+      setTick(tick + dTick);
+      if (tick > currentMemory.length + 12) {
+        setDTick(-1);
+      }
+      if (tick <= 0) {
+        setCurrentIndex((currentIndex + 1) % nostalgia.length);
+        setDTick(1);
+      }
+    }, 50);
+
+    return () => {
+      clearInterval(intervalId);
+    }
+  }, [currentIndex, dTick, nostalgia, tick]);
+
+  if (!nostalgia || nostalgia.length === 0) {
+    return "";
+  }
+
+  const currentMemory = nostalgia[currentIndex]?.trim();
+
+  return currentMemory.slice(0, Math.max(Math.min(tick, currentMemory.length), 0));
+}
