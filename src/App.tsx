@@ -82,7 +82,7 @@ export default function App() {
           <img src="/happy.gif" className="h-28 w-28 ml-auto"></img>
         </section>
         <section className="mx-auto text-center">
-          <p className="font-bold">date tbd</p>
+          <p className="font-bold">sat, october 3, 2026</p>
           <Unauthenticated>
             <p>rsvp for address!</p>
           </Unauthenticated>
