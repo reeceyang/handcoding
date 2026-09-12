@@ -354,6 +354,13 @@ export default function App() {
             up to you! do what you think is in line with the spirit of the
             event.
           </p>
+          <ul className="list-disc list-inside">
+            <li>what should i bring?</li>
+          </ul>
+          <p>
+            whatever you need to code: your laptop, a tablet, or maybe even
+            paper and pencil! there will be wifi.
+          </p>
         </section>
         <section className="ml-auto opacity-60">
           <p>*not an anti-ai event! woo hoo go ai! i love ai!!!1!!1</p>
