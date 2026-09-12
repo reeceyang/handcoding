@@ -356,14 +356,13 @@ export default function App() {
           </p>
         </section>
         <section className="ml-auto opacity-60">
-            <p>
-              *not an anti-ai event! woo hoo go ai! i love ai!!!1!!1
-            </p>
-          </section>
+          <p>*not an anti-ai event! woo hoo go ai! i love ai!!!1!!1</p>
+        </section>
         <footer className="mx-auto">
           <section>
             <p>
-              <a href="https://github.com/reeceyang/handcoding">made with ♡</a> by renee & powered by <a href="https://www.convex.dev/">convex</a>
+              <a href="https://github.com/reeceyang/handcoding">made with ♡</a>{" "}
+              by renee & powered by <a href="https://www.convex.dev/">convex</a>
             </p>
           </section>
         </footer>
@@ -473,7 +472,7 @@ const Sparkle: FC<{ initialPos: Pos; angleRad: number; char: string }> = ({
 
 function Nostalgia() {
   const nostalgia = useQuery(api.fun.getNostalgia);
-  const [currentIndex, setCurrentIndex]= useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [tick, setTick] = useState(0);
   const [dTick, setDTick] = useState(1);
 
@@ -500,7 +499,7 @@ function Nostalgia() {
 
     return () => {
       clearInterval(intervalId);
-    }
+    };
   }, [currentIndex, dTick, nostalgia, tick]);
 
   if (!nostalgia || nostalgia.length === 0) {
@@ -509,5 +508,8 @@ function Nostalgia() {
 
   const currentMemory = nostalgia[currentIndex]?.trim();
 
-  return currentMemory.slice(0, Math.max(Math.min(tick, currentMemory.length), 0));
+  return currentMemory.slice(
+    0,
+    Math.max(Math.min(tick, currentMemory.length), 0),
+  );
 }
