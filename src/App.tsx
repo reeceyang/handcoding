@@ -486,14 +486,16 @@ function Nostalgia() {
       return;
     }
     const intervalId = setInterval(() => {
-      setTick(tick + dTick);
+      let newDTick = dTick;
       if (tick > currentMemory.length + 12) {
-        setDTick(-1);
+        newDTick = -1;
       }
       if (tick <= 0) {
         setCurrentIndex((currentIndex + 1) % nostalgia.length);
-        setDTick(1);
+        newDTick = 1;
       }
+      setTick(tick + newDTick);
+      setDTick(newDTick);
     }, 50);
 
     return () => {
