@@ -174,7 +174,7 @@ export default function App() {
                     className="hover:cursor-pointer"
                   >
                     <span className="hover:opacity-100 transition opacity-60">
-                      [verify]
+                      [verify email]
                     </span>
                   </button>
                 </>
@@ -183,8 +183,10 @@ export default function App() {
             </p>
             {signInStep === "otp" && (
               <p>
-                <span className="font-bold">what's your otp code?</span> my otp
-                is{" "}
+                <span className="font-bold">
+                  check your email for a one-time passcode (otp)!
+                </span>{" "}
+                my otp is{" "}
                 <input
                   className="border-dotted dark:border-light border-dark border-b-2"
                   value={code}
