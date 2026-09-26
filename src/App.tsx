@@ -184,9 +184,9 @@ export default function App() {
             {signInStep === "otp" && (
               <p>
                 <span className="font-bold">
-                  check your email for a one-time passcode (otp)!
+                  check your email for a code (possibly in the spam folder)!
                 </span>{" "}
-                my otp is{" "}
+                my code is{" "}
                 <input
                   className="border-dotted dark:border-light border-dark border-b-2"
                   value={code}
@@ -199,7 +199,7 @@ export default function App() {
                   className="hover:cursor-pointer"
                 >
                   <span className="hover:opacity-100 transition opacity-60">
-                    [verify]
+                    [verify email]
                   </span>
                 </button>
                 .
